@@ -29,33 +29,33 @@ Cases 2 and 3 use identical aneurysm geometry and wall stiffness/thickness param
 
 ## Model
 
-The dimensionless flow-rate perturbation is denoted by
+The dimensionless flow-rate perturbation is defined as
 
-\[
-q = \frac{\tilde{Q}}{Q_\star},
-\]
+$$
+q=\frac{\tilde{Q}}{Q_\star},
+$$
 
 with dimensionless axial coordinate
 
-\[
-x = \frac{z}{L}
-\]
+$$
+x=\frac{z}{L},
+$$
 
 and dimensionless time
 
-\[
-\tau = \frac{t}{T}.
-\]
+$$
+\tau=\frac{t}{T}.
+$$
 
 The governing wave-diffusion equation implemented in the numerical model is
 
-\[
+$$
 q_{\tau\tau}
 +G(x)q_\tau
 -C(x)^2q_{xx}
 -V(x)q_{\tau xx}
 =0.
-\]
+$$
 
 The model coefficients are obtained from the local arterial wall and reference-area properties.
 
@@ -82,21 +82,23 @@ The aneurysm parameters used in the simulations are:
 
 The aneurysm occupies
 
-\[
-z_{a1}=72.5\ {\rm mm}
-\]
+$$
+z_{a1}=72.5\,\mathrm{mm}
+$$
 
 to
 
-\[
-z_{a2}=77.5\ {\rm mm}
-\]
+$$
+z_{a2}=77.5\,\mathrm{mm},
+$$
 
-within a total arterial length of 150 mm.
+within a total arterial length of \(150\,\mathrm{mm}\).
 
 The transition between healthy and aneurysmal properties is implemented using a smooth localization function.
 
 ## Numerical setup
+
+The code was developed and tested using **MATLAB R2024b**.
 
 The simulations use the following common numerical parameters:
 
@@ -115,23 +117,62 @@ The time step is selected using the CFL constraint and is shared by all three si
 
 ## Inlet function
 
-The inlet pressure perturbation is defined using a triple-sech pulse with a smooth \(C^\infty\) activation function.
+The inlet pressure perturbation is defined using a triple-sech pulse with a smooth ($C^\infty$) activation function.
+
+The raw pressure pulse is
+
+$$
+p_{\mathrm{raw}}(t)
+=
+\frac{P_P}{\cosh\left(\frac{t-t_{\mathrm{delay}}-t_P}{w_P}\right)}
++
+\frac{P_T}{\cosh\left(\frac{t-t_{\mathrm{delay}}-t_T}{w_T}\right)}
++
+\frac{P_D}{\cosh\left(\frac{t-t_{\mathrm{delay}}-t_D}{w_D}\right)}.
+$$
+
+The applied inlet pressure is
+
+$$
+p_{\mathrm{in}}(t)
+=
+S_\infty(t)\,p_{\mathrm{raw}}(t),
+$$
+
+where $S_\infty(t)$ is the smooth activation function.
+
+The dimensionless inlet boundary condition is
+
+$$
+f_2(\tau)
+=
+\frac{C_h\,p_{\mathrm{in}}(T\tau)}
+{\alpha_h A_\star}.
+$$
+
+The corresponding inlet flow-rate perturbation is
+
+$$
+\tilde{Q}_{\mathrm{in}}(t)
+=
+\frac{c_h}{\alpha_h}p_{\mathrm{in}}(t).
+$$
 
 The inlet-function check produces:
 
-1. \(p_{in}(T\tau)\)
-2. \(\tilde{Q}_{in}(T\tau)\)
-3. \(f_2(\tau)\)
-4. \(S_\infty(t)\)
+1. $p_{\mathrm{in}}(T\tau)$
+2. $\tilde{Q}_{\mathrm{in}}(T\tau)$
+3. $f_2(\tau)$
+4. $S_\infty(t)$
 
 The code also reports:
 
-- \(\max p_{in}\)
-- \(\max |\tilde{Q}_{in}|\)
-- \(\max |f_2|\)
+- $\max p_{\mathrm{in}}$
+- $\max |\tilde{Q}_{\mathrm{in}}|$
+- $\max |f_2|$
 - dimensional and dimensionless times at which the maxima occur
-- \(f_2(0)\)
-- numerical estimates of \(f'_2(0)\)
+- $f_2(0)$
+- numerical estimates of $f_2'(0)$
 
 ## Repository structure
 
