@@ -92,7 +92,7 @@ $$
 z_{a2}=77.5\,\mathrm{mm},
 $$
 
-within a total arterial length of \(150\,\mathrm{mm}\).
+within a total arterial length of 150 mm.
 
 The transition between healthy and aneurysmal properties is implemented using a smooth localization function.
 
@@ -104,14 +104,14 @@ The simulations use the following common numerical parameters:
 
 | Parameter | Value |
 |---|---:|
-| Total arterial length, \(L\) | 0.150 m |
-| Characteristic time, \(T\) | 0.050 s |
-| Blood density, \(\rho\) | 1056 kg/m³ |
-| Dynamic viscosity, \(\mu\) | 3.5 × 10⁻³ Pa·s |
+| Total arterial length, $L$ | 0.150 m |
+| Characteristic time, $T$ | 0.050 s |
+| Blood density, $\rho$ | 1056 kg/m³ |
+| Dynamic viscosity, $\mu$ | $3.5 \times 10^{-3}$ Pa·s |
 | Requested spatial intervals | 500 |
 | CFL safety factor | 0.9 |
 | Final physical simulation time | 2.0 s |
-| Requested physical time step | 2.0 × 10⁻⁵ s |
+| Requested physical time step | $2.0 \times 10^{-5}$ s |
 
 The time step is selected using the CFL constraint and is shared by all three simulations.
 
@@ -119,11 +119,10 @@ The time step is selected using the CFL constraint and is shared by all three si
 
 The inlet pressure perturbation is defined using a triple-sech pulse with a smooth ($C^\infty$) activation function.
 
-The raw pressure pulse is
+The raw inlet pressure pulse is defined as
 
 $$
-p_{\mathrm{raw}}(t)
-=
+p_{\mathrm{raw}}(t) =
 \frac{P_P}{\cosh\left(\frac{t-t_{\mathrm{delay}}-t_P}{w_P}\right)}
 +
 \frac{P_T}{\cosh\left(\frac{t-t_{\mathrm{delay}}-t_T}{w_T}\right)}
@@ -133,31 +132,23 @@ $$
 
 The applied inlet pressure is
 
-$$
-p_{\mathrm{in}}(t)
-=
-S_\infty(t)\,p_{\mathrm{raw}}(t),
-$$
+```math
+p_{\mathrm{in}}(t) = S_\infty(t)\,p_{\mathrm{raw}}(t)
+```
 
 where $S_\infty(t)$ is the smooth activation function.
 
 The dimensionless inlet boundary condition is
 
-$$
-f_2(\tau)
-=
-\frac{C_h\,p_{\mathrm{in}}(T\tau)}
-{\alpha_h A_\star}.
-$$
+```math
+f_2(\tau) = \frac{C_h\,p_{\mathrm{in}}(T\tau)}{\alpha_h A_\star}
+```
 
 The corresponding inlet flow-rate perturbation is
 
-$$
-\tilde{Q}_{\mathrm{in}}(t)
-=
-\frac{c_h}{\alpha_h}p_{\mathrm{in}}(t).
-$$
-
+```math
+\tilde{Q}_{\mathrm{in}}(t) = \frac{c_h}{\alpha_h}\,p_{\mathrm{in}}(t)
+```
 The inlet-function check produces:
 
 1. $p_{\mathrm{in}}(T\tau)$
