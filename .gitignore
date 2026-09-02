@@ -1,0 +1,16 @@
+# MATLAB temporary/autosave files
+*.asv
+*.m~
+*.autosave
+
+# MATLAB generated files
+matlab.prj
+*.mlappinstall
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+
+# Editor/IDE temporary files
+.vscode/
+.idea/
