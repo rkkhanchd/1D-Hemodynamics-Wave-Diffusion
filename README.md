@@ -143,7 +143,19 @@ The dimensionless inlet boundary condition is
 ```math
 f_2(\tau) = \frac{C_h\,p_{\mathrm{in}}(T\tau)}{\alpha_h A_\star}
 ```
+This is equivalent to the manuscript definition 
+```math
+f_2(\tau)=S_\infty(\tau)F(\tau).
+```
+Here, the dimensional inlet pressure is defined as 
+```math
+p_{\mathrm{in}}(t)=S_\infty(t)p_{\mathrm{raw}}(t),
+```
+and the pressure-to-area scaling gives
 
+```math
+F(\tau)=\frac{c_h\,p_{\mathrm{raw}}(T\tau)}{\alpha_h A_\star}.
+```
 The corresponding inlet flow-rate perturbation is
 
 ```math
