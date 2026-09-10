@@ -9,7 +9,7 @@
 % Cases 2 and 3 share IDENTICAL aneurysm geometry (r_a,h_a,E_a); they
 % differ ONLY in wall viscosity eta_a, isolating its effect.
 
-clear; clc; close all;
+clear; clc; close all; 
 
 %% SI parameters and characteristic scales (Table 3)
 rho = 1056; mu = 3.5e-3;
@@ -96,6 +96,40 @@ xlabel('$t\;[\mathrm{s}]$','Interpreter','latex'); ylabel('$S_\infty(t)$','Inter
 title('Activation function $S_\infty(t)$','Interpreter','latex');
 sgtitle('Inlet function check');
 
+%% ============ Activation-time sensitivity: inlet waveform ======= %%
+
+t_act_values = [0.05 0.10 0.20 0.24 0.50];
+figure('Color','w'); tiledlayout(1,2,'TileSpacing','compact','Padding','compact');
+% Activation functions
+nexttile; hold on;
+for ia = 1:numel(t_act_values)
+    plot(t,activation(t,t_act_values(ia)),'LineWidth',1.3, 'DisplayName',sprintf('$t_{act}=%.2f$ s',t_act_values(ia)));
+end
+grid on; box on; xlabel('$t$ [s]','Interpreter','latex'); ylabel('$S_\infty(t)$','Interpreter','latex'); title('Activation function','Interpreter','latex');
+ylim([-0.05 1.05]); legend('Interpreter','latex','Location','best');
+
+% Inlet pressure
+nexttile; hold on;
+for ia = 1:numel(t_act_values)
+    tact_test = t_act_values(ia); p_test = activation(t,tact_test).*p_raw(t);
+    plot(t,p_test/133.322,'LineWidth',1.3,'DisplayName',sprintf('$t_{act}=%.2f$ s',tact_test));
+end
+grid on; box on; xlabel('$t$ [s]','Interpreter','latex');ylabel('$p_{in}$ [mmHg]','Interpreter','latex'); title('Inlet pressure','Interpreter','latex');
+legend('Interpreter','latex','Location','best');sgtitle('Sensitivity to inlet activation time');
+
+%% =========== Activation-time sensitivity: frequency content ======== %%
+t_fft_max = 1.0; fft_mask = t <= t_fft_max; t_fft = t(fft_mask); dt_fft = t_fft(2)-t_fft(1); n_fft = numel(t_fft);
+figure('Color','w'); hold on;
+for ia = 1:numel(t_act_values)
+    tact_test = t_act_values(ia); p_test = activation(t_fft,tact_test).*p_raw(t_fft);p_test = p_test - mean(p_test);
+    Y = fft(p_test); P2 = abs(Y/n_fft);P1 = P2(1:floor(n_fft/2)+1); P1(2:end-1) = 2*P1(2:end-1);f = (0:floor(n_fft/2))/(n_fft*dt_fft);
+    % Avoid plotting zero values on logarithmic scale
+    P1(P1 <= 0) = NaN; semilogy(f,P1,'LineWidth',1.3,'DisplayName',sprintf('$t_{act}=%.2f$ s',tact_test));
+end
+xlim([0 15]); grid on; box on; xlabel('frequency [Hz]'); ylabel('amplitude');
+
+title('Inlet-pressure frequency content'); legend('Interpreter','latex','Location','best');
+
 %% ================= THREE-CASE COMPARISON =================
 cases = struct( ...
     'name',  {'Case 1: Fully healthy','Case 2: Elastic aneurysm','Case 3: Viscoelastic aneurysm'}, ...
@@ -115,12 +149,11 @@ for ic = 1:3
             cs.name, max(C_case)*dtau/dx, max(q_c(end,:))/max(q_c(1,:)));
 end
 
-%% Plots: probe waveforms and space-time maps, per case
+%% ============== Plots: probe waveforms and space-time maps, per case ====%%
 x_probe = [0.25, 0.50, 0.75];
 probe_names = {'healthy proximal','aneurysm region','healthy distal'};
 tau_plot_max = 22;    % restrict to where the pulse is actually active
 tmask = tau <= tau_plot_max;
-
 for ic = 1:3
     cs = cases(ic);
     q_c = results(ic).q; a_c = results(ic).a; p_c = results(ic).p;
@@ -152,22 +185,70 @@ for ic = 1:3
     figure('Color','w'); tiledlayout(1,3,'TileSpacing','compact','Padding','compact');
     nexttile;
     imagesc(x_plot,tau(tmask),q_c(:,tmask)'); axis xy; colormap(gca,'jet'); colorbar;
-    clim(max(abs(q_c(:)))*[-1 1]); hold on;
+    % clim(max(abs(q_c(:)))*[-1 1]); hold on;
     xline(x1,'k--','LineWidth',1.3); xline(x2,'k--','LineWidth',1.3);
     xlabel('$x$','Interpreter','latex'); ylabel('$\tau$','Interpreter','latex'); title('$q(x,\tau)$','Interpreter','latex');
     nexttile;
     imagesc(x_plot,tau(tmask),a_c(:,tmask)'); axis xy; colormap(gca,'jet'); colorbar;
-    clim(max(abs(a_c(:)))*[-1 1]); hold on;
+    % clim(max(abs(a_c(:)))*[-1 1]); hold on;
     xline(x1,'k--','LineWidth',1.3); xline(x2,'k--','LineWidth',1.3);
     xlabel('$x$','Interpreter','latex'); ylabel('$\tau$','Interpreter','latex'); title('$a(x,\tau)$','Interpreter','latex');
     nexttile;
     imagesc(x_plot,tau(tmask),p_c(:,tmask)'); axis xy; colormap(gca,'jet'); colorbar;
-    clim(max(abs(p_c(:)))*[-1 1]); hold on;
+    % clim(max(abs(p_c(:)))*[-1 1]); hold on;
     xline(x1,'k--','LineWidth',1.3); xline(x2,'k--','LineWidth',1.3);
     xlabel('$x$','Interpreter','latex'); ylabel('$\tau$','Interpreter','latex'); title('$p(x,\tau)\;[\mathrm{Pa}]$','Interpreter','latex');
     sgtitle(sprintf('%s: space-time maps (aneurysm location marked)',cs.name));
 end
+%% ========== Spatial snapshots: flow-wave propagation ======%%
 
+snapshot_tau = [0.10 0.20 0.30 0.40];
+% snapshot_tau = [0.2 0.4 5.0 5.4];
+
+figure('Color','w'); tiledlayout(1,3,'TileSpacing','compact','Padding','compact');
+
+for ic = 1:3
+    cs = cases(ic); q_c = results(ic).q;
+    nexttile; hold on;
+    % Flow snapshots
+    for k = 1:numel(snapshot_tau)
+        [~,j] = min(abs(tau-snapshot_tau(k))); plot(x_plot,q_c(:,j),'LineWidth',1.4, 'DisplayName',sprintf('t = %.3f s',t(j)));
+    end
+    % Mark aneurysm region for Cases 2 and 3
+    if ic > 1
+        yl = ylim; hA = patch([x1 x2 x2 x1], [yl(1) yl(1) yl(2) yl(2)], [0.90 0.90 0.90],'EdgeColor','none', 'FaceAlpha',0.5, 'HandleVisibility','off');
+        uistack(hA,'bottom'); xline(x1,'k--','LineWidth',1.0, 'HandleVisibility','off'); xline(x2,'k--','LineWidth',1.0, 'HandleVisibility','off');
+    end
+    grid on; box on; xlim([0 1]); xlabel('$x$','Interpreter','latex'); ylabel('$q$','Interpreter','latex'); title(cs.name,'Interpreter','latex');
+end
+
+% Common legend: only the four time snapshots
+lgd = legend('Location','southoutside', 'Orientation','horizontal'); lgd.Layout.Tile = 'south';
+
+sgtitle({'Flow-wave propagation: spatial snapshots', 'Shaded region indicates the aneurysm location in Cases 2 and 3'});
+
+%% ========= Spatial snapshots: zoom around aneurysm ========= %%
+
+% snapshot_tau = [0.20 0.30 0.40 0.50 0.60];
+snapshot_tau = [0.10 0.20 0.30 0.35 0.40 0.50];
+
+figure('Color','w');
+tiledlayout(1,2,'TileSpacing','compact','Padding','compact');
+
+for ic = 2:3
+    cs = cases(ic); q_c = results(ic).q; nexttile; hold on;
+    for k = 1:numel(snapshot_tau)
+        [~,j] = min(abs(tau-snapshot_tau(k))); plot(x_plot,q_c(:,j),'LineWidth',1.4, 'DisplayName',sprintf('t = %.3f s',t(j)));
+    end
+
+    yl = ylim; hA = patch([x1 x2 x2 x1], [yl(1) yl(1) yl(2) yl(2)], [0.90 0.90 0.90], 'EdgeColor','none', 'FaceAlpha',0.5, 'HandleVisibility','off');
+    uistack(hA,'bottom'); xline(x1,'k--','LineWidth',1.0,'HandleVisibility','off'); xline(x2,'k--','LineWidth',1.0,'HandleVisibility','off');
+    grid on; box on; xlim([0.40 0.60]); xlabel('$x$','Interpreter','latex'); ylabel('$q$','Interpreter','latex'); title(cs.name,'Interpreter','latex');
+end
+
+lgd = legend('Location','southoutside', 'Orientation','horizontal'); lgd.Layout.Tile = 'south';
+
+sgtitle({'Flow-wave interaction with the aneurysm', 'Zoomed spatial snapshots for Cases 2 and 3'});
 %% ===================== Local functions =====================
 function [q,a,p,Q,C] = simulate_case(r_a_eff,h_a_eff,E_a_eff,eta_a_eff, ...
         rho,mu,L,T,A_star,Q_star, r_h,h_h,E_h,C_h,alpha_h, ...
